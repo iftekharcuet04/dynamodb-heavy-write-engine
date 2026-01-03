@@ -37,7 +37,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     };
 
     // Update Item
-   export const updateItem=  async (tableName, key, updateExpression, attributeValues, attributeNames = {}) => {
+   export const updateItem =  async (tableName, key, updateExpression, attributeValues, attributeNames = {}) => {
         const command = new UpdateCommand({
             TableName: tableName,
             Key: key, // e.g., { id: "123" }
@@ -88,7 +88,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
             await sleep(delay);
             
             const failedItems = unprocessed.map(u => u.PutRequest.Item);
-            return await dbService.batchWriteWithRetry(tableName, failedItems, attempt + 1);
+            return await batchWriteWithRetry(tableName, failedItems, attempt + 1);
         }
 
         if (unprocessed?.length > 0) {
@@ -127,7 +127,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
             
             // Execute parallel HTTP requests to different DB partitions
             const results = await Promise.allSettled(
-                group.map(chunk => dbService.batchWriteWithRetry(tableName, chunk))
+                group.map(chunk => batchWriteWithRetry(tableName, chunk))
             );
 
             results.forEach((result, index) => {

@@ -1,6 +1,5 @@
-import express from 'express';
-import userDbService from '../src/db/user-db-service.js';
 import { Router } from 'express';
+import userDbService from '../src/db/user-db-service.js';
 
 const router = Router()
 
