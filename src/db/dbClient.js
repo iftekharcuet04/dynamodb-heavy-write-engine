@@ -1,5 +1,5 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
 // Use environment variables for Docker networking
 const client = new DynamoDBClient({
@@ -12,6 +12,6 @@ const client = new DynamoDBClient({
 });
 
 // The DocumentClient makes it easier to work with plain JSON
-const docClient = DynamoDBDocumentClient.from(client);
+const  docClient = DynamoDBDocumentClient.from(client);
 
-module.exports = docClient;
+export default docClient;

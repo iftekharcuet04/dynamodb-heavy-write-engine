@@ -1,13 +1,13 @@
-const dbService = require('./dbService');
+import { createItem, getAllItems, getItem, heavyWriteManager, updateItem } from './dbService.js';
 
 // Define table name from environment for Docker/Cloud flexibility
-const TABLE_NAME = process.env.USERS_TABLE || "test-table";
+const TABLE_NAME = process.env.USERS_TABLE || "Users";
 
 const userDbService = {
 
     // Standard CRUD - Single Item Fetch
     getUserById: async (userId) => {
-        return await dbService.getItem(TABLE_NAME, { id: userId, sk: "METADATA" });
+        return await getItem(TABLE_NAME, { id: userId, sk: "METADATA" });
     },
 
     // Standard CRUD - Single User Creation
@@ -19,12 +19,12 @@ const userDbService = {
             name: userData.name,
             createdAt: new Date().toISOString()
         };
-        return await dbService.createItem(TABLE_NAME, newUser);
+        return await createItem(TABLE_NAME, newUser);
     },
 
     // Specific Update Logic using AttributeNames for reserved keywords like 'name'
     updateUserEmail: async (userId, newEmail) => {
-        return await dbService.updateItem(
+        return await updateItem(
             TABLE_NAME, 
             { id: userId, sk: "METADATA" }, 
             "SET email = :e", 
@@ -34,7 +34,7 @@ const userDbService = {
 
     // List all users (Scan operation - use carefully in production)
     listAllUsers: async () => {
-        return await dbService.getAllItems(TABLE_NAME);
+        return await getAllItems(TABLE_NAME);
     },
 
     /**
@@ -55,8 +55,8 @@ const userDbService = {
             status: 'ACTIVE'
         }));
 
-        return await dbService.heavyWriteManager(TABLE_NAME, preparedUsers);
+        return await heavyWriteManager(TABLE_NAME, preparedUsers);
     },
 };
 
-module.exports = userDbService;
+export default userDbService;

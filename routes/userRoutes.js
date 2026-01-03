@@ -1,8 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const userDbService = require('../services/user-db-service');
+import express from 'express';
+import userDbService from '../src/db/user-db-service.js';
+import { Router } from 'express';
 
-
+const router = Router()
 
 router.get('/', async (req, res) => {
     try {
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/user/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
         const user = await userDbService.getUserById(req.params.id);
         if (!user) return res.status(404).send("User not found");
@@ -24,7 +24,7 @@ router.get('/user/:id', async (req, res) => {
     }
 });
 
-router.post('/user', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         await userDbService.registerUser(req.body);
         res.status(201).json({ status: "User registered" });
@@ -72,4 +72,4 @@ router.post('/migrate', (req, res) => {
 
 
 
-module.exports = router;
+export default router;

@@ -1,12 +1,10 @@
-const express = require('express');
-
+import express from 'express';
+import apiRouter from './routes/index.js'; // This is the file you just showed me
 
 const app = express();
 app.use(express.json());
 
-const userRouter = require('./src/route');
+// CORRECT: Pass the router directly
+app.use('/api', apiRouter); 
 
-app.use('/api/users', userRouter);
-
-
-app.listen(3000, () => console.log("App running on 3000"));
+app.listen(3000, () => console.log('Server running on port 3000'));

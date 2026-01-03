@@ -1,27 +1,27 @@
-const docClient = require("./dbClient");
+import docClient from "./dbClient.js";
 
-const { 
-    PutCommand, 
-    GetCommand, 
-    UpdateCommand, 
+import {
+    BatchWriteCommand,
+    GetCommand,
+    PutCommand,
     ScanCommand,
-    BatchWriteCommand
-} = require("@aws-sdk/lib-dynamodb");
+    UpdateCommand
+} from "@aws-sdk/lib-dynamodb";
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-const dbService = {
+
     // Create item
-    createItem: async (tableName, item) => {
+ export const createItem= async (tableName, item) => {
         const command = new PutCommand({
             TableName: tableName,
             Item: item
         });
         return await docClient.send(command);
-    },
+    };
 
     // Fetch Item
-    getItem: async (tableName, id) => {
+  export const  getItem= async (tableName, id) => {
         const command = new GetCommand({
             TableName: tableName,
             Key: { id } 
@@ -34,10 +34,10 @@ const dbService = {
             throw error;
         }
        
-    },
+    };
 
     // Update Item
-    updateItem: async (tableName, key, updateExpression, attributeValues, attributeNames = {}) => {
+   export const updateItem=  async (tableName, key, updateExpression, attributeValues, attributeNames = {}) => {
         const command = new UpdateCommand({
             TableName: tableName,
             Key: key, // e.g., { id: "123" }
@@ -55,21 +55,21 @@ const dbService = {
             console.error("Update Item Failed:", err);
             throw err;
         }
-    },
+    };
 
     // List
-    getAllItems: async (tableName) => {
+   export const getAllItems= async (tableName) => {
         const command = new ScanCommand({ TableName: tableName });
         const response = await docClient.send(command);
         return response.Items;
-    },
+    };
 
     // Heavy write: with batching+ Retry with delay exponential backoff
     /**
      * batchWriteWithRetry
      * Handles the 25-item limit and partial failures (UnprocessedItems).
      */
-   batchWriteWithRetry: async (tableName, items, attempt = 0) => {
+   const batchWriteWithRetry= async (tableName, items, attempt = 0) => {
     const MAX_RETRIES = 8;
     const params = { 
         RequestItems: { 
@@ -99,13 +99,13 @@ const dbService = {
     } catch (err) {
         throw err; // Passed up to the heavyWriteManager
     }
-},
+};
 
     /**
      * heavyWriteManager
      * Manages 10,000+ items by chunking and controlling concurrency.
      */
-    heavyWriteManager: async (tableName, allItems) => {
+    export const heavyWriteManager= async (tableName, allItems) => {
         const CHUNK_SIZE = 25;
         const CONCURRENCY_LIMIT = 5; // 5 parallel requests (125 items total per group)
         
@@ -149,6 +149,5 @@ const dbService = {
         return report;
     }
   
-};
 
-module.exports = dbService;
+
