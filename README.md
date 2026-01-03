@@ -1,7 +1,4 @@
 
----
-
-```markdown
 # High-Throughput DynamoDB Integration Service
 
 ## Project Overview
@@ -94,8 +91,6 @@ Monitor the background logs for chunking and retry events:
 
 ```bash
 docker logs -f [container_id]
-
-```
 
 ```
 
