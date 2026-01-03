@@ -51,7 +51,7 @@ Designed to handle long-running migrations without blocking the application.
 
 To protect the Node.js event loop and local network sockets, the system implements a concurrency limit. It processes 5 batches (125 items total) in parallel. This ensures high throughput while preventing "Socket Hang Up" errors or memory exhaustion.
 
-### Edge Case Management: 400KB Limit
+### Edge Case Management: 400KB Limit (progressing)
 
 DynamoDB has a strict 400KB limit per item.
 
