@@ -51,7 +51,9 @@ router.post('/migrate', (req, res) => {
     // This prevents the browser/Postman from timing out.
     res.status(202).json({
         message: "Heavy write migration started in the background.",
-        estimatedItems: mockData.length
+        estimatedItems: mockData.length,
+        batchSize: 25,
+        concurrencyLimit: 5
     });
 
     // 3. Execute the heavy write in the background

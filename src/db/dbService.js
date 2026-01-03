@@ -63,33 +63,90 @@ const dbService = {
         const response = await docClient.send(command);
         return response.Items;
     },
-// Heavy write: with batching+ Retry with delay
-    batchWriteWithRetry: async (tableName, items, attempt = 0) => {
-        const MAX_RETRIES = 5;
-        const params = { 
-            RequestItems: { [tableName]: items.map(i => ({ PutRequest: { Item: i } })) } 
-        };
 
+    // Heavy write: with batching+ Retry with delay exponential backoff
+    /**
+     * batchWriteWithRetry
+     * Handles the 25-item limit and partial failures (UnprocessedItems).
+     */
+   batchWriteWithRetry: async (tableName, items, attempt = 0) => {
+    const MAX_RETRIES = 8;
+    const params = { 
+        RequestItems: { 
+            [tableName]: items.map(i => ({ PutRequest: { Item: i } })) 
+        } 
+    };
+
+    try {
         const response = await docClient.send(new BatchWriteCommand(params));
         const unprocessed = response.UnprocessedItems?.[tableName];
 
+        // If some items failed (Throttling/Partition Heat), retry only those items
         if (unprocessed?.length > 0 && attempt < MAX_RETRIES) {
-            const delay = Math.pow(2, attempt) * 50; // Exponential Backoff
+            // Exponential Backoff + Jitter
+            const delay = Math.pow(2, attempt) * 50 + (Math.random() * 100);
             await sleep(delay);
+            
             const failedItems = unprocessed.map(u => u.PutRequest.Item);
             return await dbService.batchWriteWithRetry(tableName, failedItems, attempt + 1);
         }
-        return response;
-    },
 
+        if (unprocessed?.length > 0) {
+            throw new Error(`${unprocessed.length} items failed after ${MAX_RETRIES} retries.`);
+        }
+
+        return { success: true, count: items.length };
+    } catch (err) {
+        throw err; // Passed up to the heavyWriteManager
+    }
+},
+
+    /**
+     * heavyWriteManager
+     * Manages 10,000+ items by chunking and controlling concurrency.
+     */
     heavyWriteManager: async (tableName, allItems) => {
         const CHUNK_SIZE = 25;
+        const CONCURRENCY_LIMIT = 5; // 5 parallel requests (125 items total per group)
+        
+        const chunks = [];
         for (let i = 0; i < allItems.length; i += CHUNK_SIZE) {
-            const chunk = allItems.slice(i, i + CHUNK_SIZE);
-            await dbService.batchWrite(tableName, chunk);
-            console.log(`Processed ${i + chunk.length} items...`);
+            chunks.push(allItems.slice(i, i + CHUNK_SIZE));
         }
-        return { status: "Success" };
+
+        const report = {
+            totalItems: allItems.length,
+            succeededItems: 0,
+            failedItems: 0,
+            batchErrors: []
+        };
+
+        // Process in groups of 5 batches
+        for (let i = 0; i < chunks.length; i += CONCURRENCY_LIMIT) {
+            const group = chunks.slice(i, i + CONCURRENCY_LIMIT);
+            
+            // Execute parallel HTTP requests to different DB partitions
+            const results = await Promise.allSettled(
+                group.map(chunk => dbService.batchWriteWithRetry(tableName, chunk))
+            );
+
+            results.forEach((result, index) => {
+                const currentChunkSize = group[index].length;
+                if (result.status === 'fulfilled') {
+                    report.succeededItems += currentChunkSize;
+                } else {
+                    report.failedItems += currentChunkSize;
+                    report.batchErrors.push({
+                        error: result.reason.message,
+                        itemCount: currentChunkSize
+                    });
+                }
+            });
+
+            console.log(`[Progress] Processed ${Math.min((i + CONCURRENCY_LIMIT) * CHUNK_SIZE, allItems.length)} / ${allItems.length}`);
+        }
+
+        return report;
     }
   
 };
