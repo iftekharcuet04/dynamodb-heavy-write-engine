@@ -4,7 +4,8 @@ const {
     PutCommand, 
     GetCommand, 
     UpdateCommand, 
-    ScanCommand
+    ScanCommand,
+    BatchWriteCommand
 } = require("@aws-sdk/lib-dynamodb");
 
 const dbService = {
@@ -59,8 +60,24 @@ const dbService = {
         const command = new ScanCommand({ TableName: tableName });
         const response = await docClient.send(command);
         return response.Items;
-    }
+    },
+// Heavy write: with batching 
+    batchWrite: async (tableName, items) => {
+        const params = { 
+            RequestItems: { [tableName]: items.map(i => ({ PutRequest: { Item: i } })) } 
+        };
+        return await docClient.send(new BatchWriteCommand(params));
+    },
 
+    heavyWriteManager: async (tableName, allItems) => {
+        const CHUNK_SIZE = 25;
+        for (let i = 0; i < allItems.length; i += CHUNK_SIZE) {
+            const chunk = allItems.slice(i, i + CHUNK_SIZE);
+            await dbService.batchWrite(tableName, chunk);
+            console.log(`Processed ${i + chunk.length} items...`);
+        }
+        return { status: "Success" };
+    }
   
 };
 

@@ -35,7 +35,28 @@ const userDbService = {
     // List all users (Scan operation - use carefully in production)
     listAllUsers: async () => {
         return await dbService.getAllItems(TABLE_NAME);
-    }
+    },
+
+    /**
+     * Heavy Write / Bulk Ingestion
+     * high-volume data handling by delegating to the 
+     */
+    bulkRegisterUsers: async (userList) => {
+        console.log(`[User-Service] Preparing bulk ingestion for ${userList.length} users...`);
+
+        // Transform raw data into the required Schema format
+        const preparedUsers = userList.map(user => ({
+            id: user.id || `user_${Math.random().toString(36).substr(2, 9)}`,
+            sk: "METADATA", // Utilizing PK+SK pattern for Single Table Design
+            email: user.email,
+            name: user.name,
+            role: user.role || 'customer',
+            createdAt: new Date().toISOString(),
+            status: 'ACTIVE'
+        }));
+
+        return await dbService.heavyWriteManager(TABLE_NAME, preparedUsers);
+    },
 };
 
 module.exports = userDbService;
