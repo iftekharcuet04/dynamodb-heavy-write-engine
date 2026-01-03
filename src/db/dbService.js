@@ -8,6 +8,8 @@ const {
     BatchWriteCommand
 } = require("@aws-sdk/lib-dynamodb");
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const dbService = {
     // Create item
     createItem: async (tableName, item) => {
@@ -61,12 +63,23 @@ const dbService = {
         const response = await docClient.send(command);
         return response.Items;
     },
-// Heavy write: with batching 
-    batchWrite: async (tableName, items) => {
+// Heavy write: with batching+ Retry with delay
+    batchWriteWithRetry: async (tableName, items, attempt = 0) => {
+        const MAX_RETRIES = 5;
         const params = { 
             RequestItems: { [tableName]: items.map(i => ({ PutRequest: { Item: i } })) } 
         };
-        return await docClient.send(new BatchWriteCommand(params));
+
+        const response = await docClient.send(new BatchWriteCommand(params));
+        const unprocessed = response.UnprocessedItems?.[tableName];
+
+        if (unprocessed?.length > 0 && attempt < MAX_RETRIES) {
+            const delay = Math.pow(2, attempt) * 50; // Exponential Backoff
+            await sleep(delay);
+            const failedItems = unprocessed.map(u => u.PutRequest.Item);
+            return await dbService.batchWriteWithRetry(tableName, failedItems, attempt + 1);
+        }
+        return response;
     },
 
     heavyWriteManager: async (tableName, allItems) => {
