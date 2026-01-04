@@ -87,7 +87,7 @@ While local benchmarks show ~4.4s–5s for 1,000 items, this behavior is intenti
 
 #### Protocol Overhead
 
-Unlike binary protocols used by other NoSQL databases, DynamoDB utilizes HTTPS/JSON, requiring more CPU cycles for serialization and request signing (AWS Signature V4).
+Unlike binary protocols used by other NoSQL databases, DynamoDB utilizes HTTPS/JSON, requiring more CPU cycles for serialization and request signing (AWS Signature).
 
 #### Network Round-trips
 
