@@ -14,11 +14,12 @@ const createTable = async (tableName) => {
         KeySchema: [
             { AttributeName: "id", KeyType: "HASH" },
             { AttributeName: "sk", KeyType: "RANGE" }
-        ],
-        ProvisionedThroughput: {
+        ] ,
+        /*ProvisionedThroughput: {
             ReadCapacityUnits: 5,
             WriteCapacityUnits: 5
-        }
+        } */
+       BillingMode: "PAY_PER_REQUEST"
     };
 
     try {

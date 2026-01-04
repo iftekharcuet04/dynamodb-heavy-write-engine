@@ -53,7 +53,7 @@ router.post('/migrate', (req, res) => {
         message: "Heavy write migration started in the background.",
         estimatedItems: mockData.length,
         batchSize: 25,
-        concurrencyLimit: 5
+        // concurrencyLimit: 5
     });
 
     console.log("--- Starting Background Migration ---");

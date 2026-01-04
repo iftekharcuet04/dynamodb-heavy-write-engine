@@ -107,7 +107,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
      */
     export const heavyWriteManager= async (tableName, allItems) => {
         const CHUNK_SIZE = 25;
-        const CONCURRENCY_LIMIT = 5; // 5 parallel requests (125 items total per group)
+        const CONCURRENCY_LIMIT = 20; // 5 parallel requests (125 items total per group)
         
         const chunks = [];
         for (let i = 0; i < allItems.length; i += CHUNK_SIZE) {
