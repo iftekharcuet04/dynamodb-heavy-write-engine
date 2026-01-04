@@ -70,16 +70,16 @@ DynamoDB has a strict 400KB limit per item.
 
 Benchmarking 1,000 items revealed significant variance based on the host environment:
 
-- **High-Concurrency & On-Demand Optimization:** ~2.73s
-By increasing the concurrency limit to 20 and configuring the table for On-Demand capacity, throughput improved by 80%. This demonstrates the engine's ability to saturate available bandwidth and highlights how cloud-native scaling eliminates provisioned throughput bottlenecks.
+- **High-Concurrency & On-Demand Optimization: ~2.73s**
+By increasing the concurrency limit to **20** and configuring the table for **On-Demand** capacity, throughput improved by **80%**. This demonstrates the engine's ability to saturate available bandwidth and highlights how cloud-native scaling eliminates provisioned throughput bottlenecks.
 
-- **Optimized Environment:** ~4.4s
+- **Optimized Environment: ~4.4s**
 
-- **Standard Environment:** ~14.2s
+- **Standard Environment: ~14.2s**
 
 #### Finding
 
-Execution time is heavily influenced by Docker's Disk I/O and CPU allocation. However, the move to 2.73s proves that increasing concurrency while using On-Demand settings allows the system to reach peak performance by removing artificial throughput limits.
+Execution time is heavily influenced by Docker's Disk I/O and CPU allocation. However, the move to **2.73s** proves that increasing concurrency while using On-Demand settings allows the system to reach peak performance by removing artificial throughput limits.
 
 ### Architectural Tradeoffs: Throughput vs. Latency
 
