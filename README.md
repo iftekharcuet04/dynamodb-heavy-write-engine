@@ -56,8 +56,12 @@ To protect the Node.js event loop and local network sockets, the system implemen
 DynamoDB has a strict 400KB limit per item.
 
 - **Pre-Validation:** The service calculates the byte size of each item before transmission using `Buffer.byteLength`.
-- **Proactive Filtering:** Any item exceeding 400KB is caught and logged as an error in the final report, preventing a `ValidationException` from failing an entire batch.
+
 - **Payload Safety:** By capping batches at 25 items, the system stays safely below the 16MB total batch size limit (Max $25 \times 400KB = 10MB$).
+
+#### Scope for later
+
+- **Proactive Filtering:** Any item exceeding 400KB is caught and logged as an error in the final report, preventing a `ValidationException` from failing an entire batch.
 
 ---
 
