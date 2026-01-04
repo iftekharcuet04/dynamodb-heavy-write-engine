@@ -39,12 +39,15 @@ router.post('/', async (req, res) => {
  * @access  Public (should be Admin in production)
  */
 router.post('/migrate', (req, res) => {
-    const mockData = Array.from({ length: 1000 }, (_, i) => ({
-        id: `gen_${Date.now()}_${i}`,
-        email: `user${i}@example.com`,
-        name: `User ${i}`
-    }));
-
+    const startId = 0;
+    const mockData = Array.from({ length: 1000 }, (_, i) => {
+        const currentNumber = startId + i;
+        return {
+            id: `gen_${Date.now()}_${currentNumber}`,
+            email: `user${currentNumber}@example.com`,
+            name: `User ${currentNumber}`
+        }
+    });
     // This prevents the browser/Postman from timing out.
     res.status(202).json({
         message: "Heavy write migration started in the background.",

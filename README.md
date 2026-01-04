@@ -61,6 +61,49 @@ DynamoDB has a strict 400KB limit per item.
 
 ---
 
+### Performance Observations
+#### Benchmarking
+
+Benchmarking 1,000 items revealed significant variance based on the host environment:
+
+##### Optimized Environment: ~4.4s
+
+##### Standard Environment: ~14.2s
+
+#### Finding
+
+Execution time is heavily influenced by Docker's Disk I/O performance and CPU allocation for the local DynamoDB container, highlighting the importance of the built-in concurrency limits to ensure stability across different hardware.
+
+### Architectural Tradeoffs: Throughput vs. Latency
+
+While local benchmarks show ~4.4s–5s for 1,000 items, this behavior is intentional to mirror production DynamoDB behavior:
+
+#### Protocol Overhead
+
+Unlike binary protocols used by other NoSQL databases, DynamoDB utilizes HTTPS/JSON, requiring more CPU cycles for serialization and request signing (AWS Signature V4).
+
+#### Network Round-trips
+
+To ensure reliability, the engine adheres to the 25-item batch limit, necessitating 40 separate network calls for every 1,000 items.
+
+#### Persistence Guarantees
+
+DynamoDB prioritizes durability by acknowledging writes only after they are persisted to multiple storage nodes, resulting in higher latency but superior data safety compared to memory-first databases.
+
+
+### Scalability Roadmap
+#### Current testing
+
+Current testing identified the boundary for large-scale migrations:
+
+##### Memory Handling
+
+The current implementation relies on `Array.from` for data generation. At a scale of 10M+ items, this causes a Node.js Heap Out of Memory (OOM) error, leading to a server crash.
+
+#### Next Refinement
+
+Move to a Generator/Iterator pattern. This will allow the engine to "pull" items individually from the source, keeping memory usage constant regardless of the total migration size.
+
 ## Reporting and Observability
 
 The system utilizes `Promise.allSettled` to track the outcome of every batch. At the end of a "Heavy Write" operation, it generates a comprehensive report:
